@@ -73,9 +73,9 @@ impl Registration {
     pub(crate) fn new_with_interest_and_handle(
         io: &mut impl Source,
         interest: Interest,
-        handle: scheduler::Handle,
+        handle: scheduler::Handle,//scheduler的实现方案handler
     ) -> io::Result<Registration> {
-        let shared = handle.driver().io().add_source(io, interest)?;
+        let shared = handle.driver().io().add_source(io, interest)?; //创建一个ScheduledIo
 
         Ok(Registration { handle, shared })
     }

@@ -56,9 +56,9 @@ impl RegistrationSet {
                 io::ErrorKind::Other,
                 crate::util::error::RUNTIME_SHUTTING_DOWN_ERROR,
             ));
-        }
+        } //首先确保我们不是shutdown的
 
-        let ret = Arc::new(ScheduledIo::default());
+        let ret = Arc::new(ScheduledIo::default()); //使用默认配置创建ScheduledIo
 
         // Push a ref into the list of all resources.
         synced.registrations.push_front(ret.clone());

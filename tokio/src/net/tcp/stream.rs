@@ -138,7 +138,7 @@ impl TcpStream {
         }
 
         pub(crate) async fn connect_mio(sys: mio::net::TcpStream) -> io::Result<TcpStream> {
-            let stream = TcpStream::new(sys)?;
+            let stream = TcpStream::new(sys)?; 
 
             // Once we've connected, wait for the stream to be writable as
             // that's when the actual connection has been initiated. Once we're

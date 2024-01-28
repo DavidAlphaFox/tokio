@@ -218,10 +218,10 @@ impl Handle {
         interest: Interest,
     ) -> io::Result<Arc<ScheduledIo>> {
         let scheduled_io = self.registrations.allocate(&mut self.synced.lock())?;
-        let token = scheduled_io.token();
+        let token = scheduled_io.token(); //创建MIO中的Token
 
         // TODO: if this returns an err, the `ScheduledIo` leaks...
-        self.registry.register(source, token, interest.to_mio())?;
+        self.registry.register(source, token, interest.to_mio())?; //在注册器中注册消息源（TCP，UDP，IO)
 
         // TODO: move this logic to `RegistrationSet` and use a `CountedLinkedList`
         self.metrics.incr_fd_count();
