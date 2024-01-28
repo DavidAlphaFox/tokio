@@ -78,19 +78,19 @@ tokio_thread_local! {
     static CONTEXT: Context = const {
         Context {
             #[cfg(feature = "rt")]
-            thread_id: Cell::new(None),
+            thread_id: Cell::new(None), //保存线程ID
 
             // Tracks the current runtime handle to use when spawning,
             // accessing drivers, etc...
             #[cfg(feature = "rt")]
-            current: current::HandleCell::new(),
+            current: current::HandleCell::new(), //保存线程的Handler，方便获取各种Driver和handler
 
             // Tracks the current scheduler internal context
             #[cfg(feature = "rt")]
-            scheduler: Scoped::new(),
+            scheduler: Scoped::new(), // 线程的自身上下文
 
             #[cfg(feature = "rt")]
-            current_task_id: Cell::new(None),
+            current_task_id: Cell::new(None), //当前正在运行的Task的ID
 
             // Tracks if the current thread is currently driving a runtime.
             // Note, that if this is set to "entered", the current scheduler

@@ -120,7 +120,7 @@ pub enum RuntimeFlavor {
 
 /// The runtime scheduler is either a multi-thread or a current-thread executor.
 #[derive(Debug)]
-pub(super) enum Scheduler {
+pub(super) enum Scheduler { //调度器类型，单线程序或多线程
     /// Execute all tasks on the current-thread.
     CurrentThread(CurrentThread),
 

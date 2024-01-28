@@ -17,7 +17,7 @@ pub(crate) struct SetCurrentGuard {
 
     // Don't let the type move across threads.
     _p: PhantomData<SyncNotSend>,
-}
+} //该数据不会在线程之间移动
 
 pub(super) struct HandleCell {
     /// Current handle
@@ -47,17 +47,17 @@ where
 
 impl Context {
     pub(super) fn set_current(&self, handle: &scheduler::Handle) -> SetCurrentGuard {
-        let old_handle = self.current.handle.borrow_mut().replace(handle.clone());
-        let depth = self.current.depth.get();
+        let old_handle = self.current.handle.borrow_mut().replace(handle.clone());//用现在的handle替老的handle
+        let depth = self.current.depth.get(); //获得依赖层级
 
         assert!(depth != usize::MAX, "reached max `enter` depth");
 
-        let depth = depth + 1;
+        let depth = depth + 1; //每次更换handler都要增加一个层级
         self.current.depth.set(depth);
 
         SetCurrentGuard {
-            prev: old_handle,
-            depth,
+            prev: old_handle, //之前的handler
+            depth, //深度
             _p: PhantomData,
         }
     }
@@ -75,9 +75,9 @@ impl HandleCell {
 impl Drop for SetCurrentGuard {
     fn drop(&mut self) {
         CONTEXT.with(|ctx| {
-            let depth = ctx.current.depth.get();
+            let depth = ctx.current.depth.get(); //得到调度器当前深度
 
-            if depth != self.depth {
+            if depth != self.depth { //深度不等，这将是个问题
                 if !std::thread::panicking() {
                     panic!(
                         "`EnterGuard` values dropped out of order. Guards returned by \
@@ -90,7 +90,7 @@ impl Drop for SetCurrentGuard {
                 }
             }
 
-            *ctx.current.handle.borrow_mut() = self.prev.take();
+            *ctx.current.handle.borrow_mut() = self.prev.take(); //还原到前一个handle
             ctx.current.depth.set(depth - 1);
         });
     }

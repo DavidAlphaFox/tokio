@@ -202,9 +202,9 @@ where
                         TransitionToIdle::Cancelled => PollFuture::Complete,
                     }
                 }
-                let header_ptr = self.header_ptr();
-                let waker_ref = waker_ref::<S>(&header_ptr);
-                let cx = Context::from_waker(&waker_ref);
+                let header_ptr = self.header_ptr(); //任务的本身，包含future，scheduler
+                let waker_ref = waker_ref::<S>(&header_ptr); //构建Waker，可以让调度器调度
+                let cx = Context::from_waker(&waker_ref); 
                 let res = poll_future(self.core(), cx);
 
                 if res == Poll::Ready(()) {

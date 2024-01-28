@@ -347,7 +347,7 @@ impl ScheduledIo {
                 Some(existing) => {
                     if !existing.will_wake(cx.waker()) {
                         *existing = cx.waker().clone();
-                    }
+                    }//两个waker不一致，才进行复制
                 }
                 None => {
                     *slot = Some(cx.waker().clone());

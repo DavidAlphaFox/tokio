@@ -293,7 +293,7 @@ cfg_rt! {
         T: Future + 'static,
         T::Output: 'static,
     {
-        let raw = RawTask::new::<T, S>(task, scheduler, id);
+        let raw = RawTask::new::<T, S>(task, scheduler, id); //创建原始的task
         let task = Task {
             raw,
             _p: PhantomData,

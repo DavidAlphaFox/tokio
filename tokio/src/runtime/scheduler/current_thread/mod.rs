@@ -47,7 +47,7 @@ pub(crate) struct Handle {
 /// a function that will perform the scheduling work and acts as a capability token.
 struct Core {
     /// Scheduler run queue
-    tasks: VecDeque<Notified>,
+    tasks: VecDeque<Notified>, //任务队列
 
     /// Current tick
     tick: u32,
@@ -212,7 +212,7 @@ impl CurrentThread {
     }
 
     pub(crate) fn shutdown(&mut self, handle: &scheduler::Handle) {
-        let handle = handle.as_current_thread();
+        let handle = handle.as_current_thread(); //得到真正的handler
 
         // Avoid a double panic if we are currently panicking and
         // the lock may be poisoned.
@@ -562,7 +562,7 @@ impl Schedule for Arc<Handle> {
         self.shared.owned.remove(task)
     }
 
-    fn schedule(&self, task: task::Notified<Self>) {
+    fn schedule(&self, task: task::Notified<Self>) { //真正的调度任务
         use scheduler::Context::CurrentThread;
 
         context::with_scheduler(|maybe_cx| match maybe_cx {

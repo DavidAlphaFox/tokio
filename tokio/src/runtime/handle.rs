@@ -11,9 +11,9 @@ use crate::runtime::{context, scheduler, RuntimeFlavor};
 #[derive(Debug, Clone)]
 // When the `rt` feature is *not* enabled, this type is still defined, but not
 // included in the public API.
-pub struct Handle {
+pub struct Handle { //外部看到的Handle，内部是真正的handler
     pub(crate) inner: scheduler::Handle,
-}
+} 
 
 use crate::runtime::task::JoinHandle;
 use crate::util::error::{CONTEXT_MISSING_ERROR, THREAD_LOCAL_DESTROYED_ERROR};
