@@ -68,7 +68,7 @@ cfg_net! {
     /// [`shutdown()`]: fn@crate::io::AsyncWriteExt::shutdown
     pub struct TcpStream {
         io: PollEvented<mio::net::TcpStream>,
-    }
+    } //Steam会对应一个PollEvented,PollEvented对应一个Registration，Registration对应一个ScheduledIo,Registration会和runtime::io::driver::Handle共享ScheduledIo
 }
 
 impl TcpStream {
