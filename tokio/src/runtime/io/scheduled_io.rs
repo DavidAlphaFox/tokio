@@ -409,7 +409,7 @@ unsafe impl Sync for ScheduledIo {}
 impl ScheduledIo {
     /// An async version of `poll_readiness` which uses a linked list of wakers.
     pub(crate) async fn readiness(&self, interest: Interest) -> ReadyEvent {
-        self.readiness_fut(interest).await
+        self.readiness_fut(interest).await //此处poll event
     }
 
     // This is in a separate function so that the borrow checker doesn't think

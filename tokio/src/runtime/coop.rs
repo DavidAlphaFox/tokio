@@ -143,7 +143,7 @@ cfg_coop! {
 
     impl RestoreOnPending {
         pub(crate) fn made_progress(&self) {
-            self.0.set(Budget::unconstrained());
+            self.0.set(Budget::unconstrained()); //更新为不限时
         }
     }
 
@@ -175,17 +175,17 @@ cfg_coop! {
     #[inline]
     pub(crate) fn poll_proceed(cx: &mut Context<'_>) -> Poll<RestoreOnPending> {
         context::budget(|cell| {
-            let mut budget = cell.get();
+            let mut budget = cell.get(); //得到可以运行的时长
 
-            let decrement = budget.decrement();
+            let decrement = budget.decrement(); //减少1时长
 
             if decrement.success {
-                let restore = RestoreOnPending(Cell::new(cell.get()));
-                cell.set(budget);
+                let restore = RestoreOnPending(Cell::new(cell.get())); //将前值作为结果
+                cell.set(budget); //更新
 
                 // avoid double counting
-                if decrement.hit_zero {
-                    inc_budget_forced_yield_count();
+                if decrement.hit_zero { //如果已经到0了
+                    inc_budget_forced_yield_count(); //增加运行时长
                 }
 
                 Poll::Ready(restore)

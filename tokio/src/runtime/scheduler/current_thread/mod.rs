@@ -199,7 +199,7 @@ impl CurrentThread {
     }
 
     fn take_core(&self, handle: &Arc<Handle>) -> Option<CoreGuard<'_>> {
-        let core = self.core.take()?;
+        let core = self.core.take()?; //获取核心数据
 
         Some(CoreGuard {
             context: scheduler::Context::CurrentThread(Context {
@@ -672,15 +672,15 @@ impl CoreGuard<'_> {
                         return (core, None);
                     }
 
-                    core.tick();
+                    core.tick(); //增加Core的时钟计数
 
-                    let entry = core.next_task(handle);
+                    let entry = core.next_task(handle); //获取下一个任务
 
                     let task = match entry {
                         Some(entry) => entry,
-                        None => {
+                        None => { //没有任何任务了
                             core.metrics.end_processing_scheduled_tasks();
-
+                            //让线程暂停一下，如果defer类型的任务不为空，那就是yield
                             core = if !context.defer.is_empty() {
                                 context.park_yield(core, handle)
                             } else {

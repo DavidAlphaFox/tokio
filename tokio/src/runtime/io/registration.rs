@@ -217,7 +217,7 @@ impl Registration {
         mut f: impl FnMut() -> io::Result<R>,
     ) -> io::Result<R> {
         loop {
-            let event = self.readiness(interest).await?;
+            let event = self.readiness(interest).await?; //得到对应的event后才会继续前进
 
             let coop = crate::future::poll_fn(crate::runtime::coop::poll_proceed).await;
 
