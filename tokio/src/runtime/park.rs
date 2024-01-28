@@ -54,7 +54,7 @@ impl ParkThread {
     pub(crate) fn unpark(&self) -> UnparkThread {
         let inner = self.inner.clone();
         UnparkThread { inner }
-    }
+    } //转化成UnparkThread数据结构
 
     pub(crate) fn park(&mut self) {
         #[cfg(loom)]
@@ -90,10 +90,10 @@ impl Inner {
             .is_ok()
         {
             return;
-        }
+        } //
 
         // Otherwise we need to coordinate going to sleep
-        let mut m = self.mutex.lock();
+        let mut m = self.mutex.lock();//枷锁
 
         match self.state.compare_exchange(EMPTY, PARKED, SeqCst, SeqCst) {
             Ok(_) => {}
@@ -113,7 +113,7 @@ impl Inner {
         }
 
         loop {
-            m = self.condvar.wait(m).unwrap();
+            m = self.condvar.wait(m).unwrap(); //等待唤醒
 
             if self
                 .state
@@ -182,7 +182,7 @@ impl Inner {
             NOTIFIED => return, // already unparked
             PARKED => {}        // gotta go wake someone up
             _ => panic!("inconsistent state in unpark"),
-        }
+        } //多个其它线程抢一个线程的控制权
 
         // There is a period between when the parked thread sets `state` to
         // `PARKED` (or last checked `state` in the case of a spurious wake
@@ -275,14 +275,14 @@ impl CachedParkThread {
         let waker = self.waker()?;
         let mut cx = Context::from_waker(&waker);
 
-        pin!(f);
+        pin!(f); //保证函数不变
 
         loop {
             if let Ready(v) = crate::runtime::coop::budget(|| f.as_mut().poll(&mut cx)) {
                 return Ok(v);
             }
 
-            self.park();
+            self.park(); // 把自己换出
         }
     }
 }
@@ -300,11 +300,11 @@ impl Inner {
     #[allow(clippy::wrong_self_convention)]
     fn into_raw(this: Arc<Inner>) -> *const () {
         Arc::into_raw(this) as *const ()
-    }
+    } //将Arc转化成原始指针
 
     unsafe fn from_raw(ptr: *const ()) -> Arc<Inner> {
         Arc::from_raw(ptr as *const Inner)
-    }
+    } //从原始指针转化为Arc
 }
 
 unsafe fn unparker_to_raw_waker(unparker: Arc<Inner>) -> RawWaker {
@@ -315,8 +315,8 @@ unsafe fn unparker_to_raw_waker(unparker: Arc<Inner>) -> RawWaker {
 }
 
 unsafe fn clone(raw: *const ()) -> RawWaker {
-    Arc::increment_strong_count(raw as *const Inner);
-    unparker_to_raw_waker(Inner::from_raw(raw))
+    Arc::increment_strong_count(raw as *const Inner); // 增加Inner的引用计数
+    unparker_to_raw_waker(Inner::from_raw(raw)) //构建一个全新的RawWaker
 }
 
 unsafe fn drop_waker(raw: *const ()) {

@@ -189,7 +189,7 @@ impl ScheduledIo {
     pub(crate) fn token(&self) -> mio::Token {
         // use `expose_addr` when stable
         mio::Token(self as *const _ as usize)
-    }
+    } // 把自己的地址作为Token来用
 
     /// Invoked when the IO driver is shut down; forces this ScheduledIo into a
     /// permanently shutdown state.
@@ -208,7 +208,7 @@ impl ScheduledIo {
     /// - `f`: a closure returning a new readiness value given the previous
     ///   readiness.
     pub(super) fn set_readiness(&self, tick: Tick, f: impl Fn(Ready) -> Ready) {
-        let mut current = self.readiness.load(Acquire);
+        let mut current = self.readiness.load(Acquire); //得到设置的事件
 
         // If the io driver is shut down, then you are only allowed to clear readiness.
         debug_assert!(SHUTDOWN.unpack(current) == 0 || matches!(tick, Tick::Clear(_)));
@@ -217,7 +217,7 @@ impl ScheduledIo {
             // Mask out the tick bits so that the modifying function doesn't see
             // them.
             let current_readiness = Ready::from_usize(current);
-            let new = f(current_readiness);
+            let new = f(current_readiness); //得到新的事件
 
             let new_tick = match tick {
                 Tick::Set => {
@@ -257,35 +257,35 @@ impl ScheduledIo {
     /// than 32 wakers to notify, if the stack array fills up, the lock is
     /// released, the array is cleared, and the iteration continues.
     pub(super) fn wake(&self, ready: Ready) {
-        let mut wakers = WakeList::new();
+        let mut wakers = WakeList::new(); //构建一个全新的WakeList
 
-        let mut waiters = self.waiters.lock();
+        let mut waiters = self.waiters.lock(); //加锁获取当前的waiters
 
         // check for AsyncRead slot
         if ready.is_readable() {
             if let Some(waker) = waiters.reader.take() {
                 wakers.push(waker);
             }
-        }
+        } //添加所有的异步读事件等待者
 
         // check for AsyncWrite slot
         if ready.is_writable() {
             if let Some(waker) = waiters.writer.take() {
                 wakers.push(waker);
             }
-        }
+        } //添加所有的异步写事件等待者
 
         'outer: loop {
             let mut iter = waiters.list.drain_filter(|w| ready.satisfies(w.interest));
-
-            while wakers.can_push() {
+            //获取满足事件的iterator
+            while wakers.can_push() { //唤醒列表时候还有空间，一次唤醒不能超过32个
                 match iter.next() {
                     Some(waiter) => {
                         let waiter = unsafe { &mut *waiter.as_ptr() };
 
                         if let Some(waker) = waiter.waker.take() {
                             waiter.is_ready = true;
-                            wakers.push(waker);
+                            wakers.push(waker); 
                         }
                     }
                     None => {
@@ -294,12 +294,12 @@ impl ScheduledIo {
                 }
             }
 
-            drop(waiters);
+            drop(waiters);// 清除锁
 
-            wakers.wake_all();
+            wakers.wake_all(); // 唤醒所有，每次唤醒所有后都将这个列表清空
 
             // Acquire the lock again.
-            waiters = self.waiters.lock();
+            waiters = self.waiters.lock(); //再次加锁
         }
 
         // Release the lock before notifying

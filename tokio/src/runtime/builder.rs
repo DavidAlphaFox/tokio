@@ -1074,7 +1074,7 @@ impl Builder {
             self
         }
     }
-
+    //构建当前线程的异步调度
     fn build_current_thread_runtime(&mut self) -> io::Result<Runtime> {
         use crate::runtime::scheduler::{self, CurrentThread};
         use crate::runtime::{runtime::Scheduler, Config};

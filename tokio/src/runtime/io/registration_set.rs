@@ -23,7 +23,7 @@ pub(super) struct Synced {
     // stores its `ScheduledIo` in this list. The I/O driver is responsible for
     // dropping it. This ensures the `ScheduledIo` is not freed while it can
     // still be included in an I/O event.
-    pending_release: Vec<Arc<ScheduledIo>>,
+    pending_release: Vec<Arc<ScheduledIo>>, //如果Registration被Drop了，它不能直接dropScheduledIo，需要放入这个数组中，等待Driver去Drop
 }
 
 impl RegistrationSet {

@@ -73,7 +73,7 @@ struct Context {
     ))]
     trace: trace::Context,
 }
-
+//每个线程的local上下文
 tokio_thread_local! {
     static CONTEXT: Context = const {
         Context {

@@ -16,7 +16,7 @@ use std::io;
 use std::sync::Arc;
 use std::time::Duration;
 
-/// I/O driver, backed by Mio.
+/// I/O driver, backed by Mio. 异步IO处理器
 pub(crate) struct Driver {
     /// True when an event with the signal token is received
     signal_ready: bool,
@@ -94,16 +94,16 @@ impl Driver {
     pub(crate) fn new(nevents: usize) -> io::Result<(Driver, Handle)> {
         let poll = mio::Poll::new()?;
         #[cfg(not(target_os = "wasi"))]
-        let waker = mio::Waker::new(poll.registry(), TOKEN_WAKEUP)?;
+        let waker = mio::Waker::new(poll.registry(), TOKEN_WAKEUP)?; //创建Reactor唤醒事件
         let registry = poll.registry().try_clone()?;
 
         let driver = Driver {
             signal_ready: false,
             events: mio::Events::with_capacity(nevents),
             poll,
-        };
+        }; //创建Reactor驱动核心完成
 
-        let (registrations, synced) = RegistrationSet::new();
+        let (registrations, synced) = RegistrationSet::new(); //创建事件注册集合
 
         let handle = Handle {
             registry,
@@ -136,17 +136,17 @@ impl Driver {
             io.shutdown();
         }
     }
-
+    //开始进行IO轮询
     fn turn(&mut self, handle: &Handle, max_wait: Option<Duration>) {
         debug_assert!(!handle.registrations.is_shutdown(&handle.synced.lock()));
-
+        // 释放所有的需要释放的ScheduledIo
         handle.release_pending_registrations();
-
+        //自身事件池
         let events = &mut self.events;
 
         // Block waiting for an event to happen, peeling out how many events
         // happened.
-        match self.poll.poll(events, max_wait) {
+        match self.poll.poll(events, max_wait) { //获取事件
             Ok(()) => {}
             Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {}
             #[cfg(target_os = "wasi")]
@@ -159,26 +159,26 @@ impl Driver {
 
         // Process all the events that came in, dispatching appropriately
         let mut ready_count = 0;
-        for event in events.iter() {
-            let token = event.token();
+        for event in events.iter() { //遍历事件池
+            let token = event.token(); //获取每个事件的token
 
-            if token == TOKEN_WAKEUP {
+            if token == TOKEN_WAKEUP { //唤醒事件
                 // Nothing to do, the event is used to unblock the I/O driver
-            } else if token == TOKEN_SIGNAL {
+            } else if token == TOKEN_SIGNAL { //信号事件
                 self.signal_ready = true;
             } else {
-                let ready = Ready::from_mio(event);
+                let ready = Ready::from_mio(event); //得到事件就绪类型
                 // Use std::ptr::from_exposed_addr when stable
-                let ptr: *const ScheduledIo = token.0 as *const _;
+                let ptr: *const ScheduledIo = token.0 as *const _; //从Token转化为对应的ScheduledIo
 
                 // Safety: we ensure that the pointers used as tokens are not freed
                 // until they are both deregistered from mio **and** we know the I/O
                 // driver is not concurrently polling. The I/O driver holds ownership of
                 // an `Arc<ScheduledIo>` so we can safely cast this to a ref.
-                let io: &ScheduledIo = unsafe { &*ptr };
+                let io: &ScheduledIo = unsafe { &*ptr }; //转化成对应的ScheduledIo引用
 
-                io.set_readiness(Tick::Set, |curr| curr | ready);
-                io.wake(ready);
+                io.set_readiness(Tick::Set, |curr| curr | ready); //给ScheduledIo设置当前事件
+                io.wake(ready); // 唤醒ScheduledIo
 
                 ready_count += 1;
             }

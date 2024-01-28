@@ -85,7 +85,7 @@ impl Handle {
             handle.unpark();
         }
 
-        self.io.unpark();
+        self.io.unpark();// io唤醒
     }
 
     cfg_io_driver! {
@@ -145,9 +145,9 @@ cfg_io_driver! {
         assert!(!enabled);
 
         let ret = if enabled {
-            let (io_driver, io_handle) = crate::runtime::io::Driver::new(nevents)?;
+            let (io_driver, io_handle) = crate::runtime::io::Driver::new(nevents)?; //创建IO Driver和Handle
 
-            let (signal_driver, signal_handle) = create_signal_driver(io_driver, &io_handle)?;
+            let (signal_driver, signal_handle) = create_signal_driver(io_driver, &io_handle)?; //将IO和Signal关联起来
             let process_driver = create_process_driver(signal_driver);
 
             (IoStack::Enabled(process_driver), IoHandle::Enabled(io_handle), signal_handle)
