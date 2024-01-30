@@ -343,7 +343,7 @@ impl Context {
         let mut ret = self.enter(core, || crate::runtime::coop::budget(f));
         ret.0.metrics.end_poll();
         ret
-    }
+    } // 执行task也是使用budget
 
     /// Blocks the current thread until an event is received by the driver,
     /// including I/O events, timer events, ...
@@ -642,7 +642,7 @@ struct CoreGuard<'a> {
 
 impl CoreGuard<'_> {
     #[track_caller]
-    fn block_on<F: Future>(self, future: F) -> F::Output {
+    fn block_on<F: Future>(self, future: F) -> F::Output { //block的task一定是有budget的
         let ret = self.enter(|mut core, context| {
             let waker = Handle::waker_ref(&context.handle);
             let mut cx = std::task::Context::from_waker(&waker);

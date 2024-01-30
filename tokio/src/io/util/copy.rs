@@ -23,7 +23,7 @@ impl CopyBuffer {
             pos: 0,
             cap: 0,
             amt: 0,
-            buf: vec![0; super::DEFAULT_BUF_SIZE].into_boxed_slice(),
+            buf: vec![0; super::DEFAULT_BUF_SIZE].into_boxed_slice(), //默认构建一个8k的buffer，默认放在堆上
         }
     }
 
@@ -36,14 +36,14 @@ impl CopyBuffer {
         R: AsyncRead + ?Sized,
     {
         let me = &mut *self;
-        let mut buf = ReadBuf::new(&mut me.buf);
+        let mut buf = ReadBuf::new(&mut me.buf); //构建reader buffer
         buf.set_filled(me.cap);
 
-        let res = reader.poll_read(cx, &mut buf);
-        if let Poll::Ready(Ok(())) = res {
-            let filled_len = buf.filled().len();
-            me.read_done = me.cap == filled_len;
-            me.cap = filled_len;
+        let res = reader.poll_read(cx, &mut buf); //让reader填充buffer
+        if let Poll::Ready(Ok(())) = res { //填充成功
+            let filled_len = buf.filled().len(); //得到buffer已经填充了多少
+            me.read_done = me.cap == filled_len; //如果填充的数量和自身的容量大小相同，说明reader已经完成了工作
+            me.cap = filled_len; //我们当前填充了多少
         }
         res
     }
@@ -98,7 +98,7 @@ impl CopyBuffer {
         loop {
             // If our buffer is empty, then we need to read some data to
             // continue.
-            if self.pos == self.cap && !self.read_done {
+            if self.pos == self.cap && !self.read_done { //读取没有完成，并且我们的数据已经发送完成了
                 self.pos = 0;
                 self.cap = 0;
 
@@ -147,7 +147,7 @@ impl CopyBuffer {
                             ))]
                             coop.made_progress();
                             self.need_flush = false;
-                        }
+                        } //强制的flush writer
 
                         return Poll::Pending;
                     }
