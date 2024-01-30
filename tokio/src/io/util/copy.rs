@@ -37,12 +37,12 @@ impl CopyBuffer {
     {
         let me = &mut *self;
         let mut buf = ReadBuf::new(&mut me.buf); //构建reader buffer
-        buf.set_filled(me.cap);
+        buf.set_filled(me.cap); // 双位置指针的buffer，pos记录数据在开始位置，cap记录数据结束位置
 
         let res = reader.poll_read(cx, &mut buf); //让reader填充buffer
         if let Poll::Ready(Ok(())) = res { //填充成功
             let filled_len = buf.filled().len(); //得到buffer已经填充了多少
-            me.read_done = me.cap == filled_len; //如果填充的数量和自身的容量大小相同，说明reader已经完成了工作
+            me.read_done = me.cap == filled_len; //如果填充的数量和自身的容量大小相同，说明reader已经完成了工作，因为本次接收的数据为0
             me.cap = filled_len; //我们当前填充了多少
         }
         res
@@ -98,7 +98,7 @@ impl CopyBuffer {
         loop {
             // If our buffer is empty, then we need to read some data to
             // continue.
-            if self.pos == self.cap && !self.read_done { //读取没有完成，并且我们的数据已经发送完成了
+            if self.pos == self.cap && !self.read_done { //读取没有关闭，并且我们的数据已经发送完成了
                 self.pos = 0;
                 self.cap = 0;
 
@@ -115,7 +115,7 @@ impl CopyBuffer {
                             feature = "time",
                         ))]
                         coop.made_progress();
-                    }
+                    } //填充buffer，推进进度
                     Poll::Ready(Err(err)) => {
                         #[cfg(any(
                             feature = "fs",
@@ -156,7 +156,7 @@ impl CopyBuffer {
 
             // If our buffer has some data, let's write it out!
             while self.pos < self.cap {
-                let i = ready!(self.poll_write_buf(cx, reader.as_mut(), writer.as_mut()))?;
+                let i = ready!(self.poll_write_buf(cx, reader.as_mut(), writer.as_mut()))?; //进行writer的输出
                 #[cfg(any(
                     feature = "fs",
                     feature = "io-std",
@@ -168,15 +168,15 @@ impl CopyBuffer {
                     feature = "time",
                 ))]
                 coop.made_progress();
-                if i == 0 {
+                if i == 0 { //写出错了，对面有可能关闭的pipe
                     return Poll::Ready(Err(io::Error::new(
                         io::ErrorKind::WriteZero,
                         "write zero byte into writer",
                     )));
                 } else {
-                    self.pos += i;
-                    self.amt += i as u64;
-                    self.need_flush = true;
+                    self.pos += i; //调整指针位置
+                    self.amt += i as u64; //增加吞吐量
+                    self.need_flush = true; //标记需要flush
                 }
             }
 
@@ -191,7 +191,7 @@ impl CopyBuffer {
             // If we've written all the data and we've seen EOF, flush out the
             // data and finish the transfer.
             if self.pos == self.cap && self.read_done {
-                ready!(writer.as_mut().poll_flush(cx))?;
+                ready!(writer.as_mut().poll_flush(cx))?; //刷写出端
                 #[cfg(any(
                     feature = "fs",
                     feature = "io-std",
@@ -203,7 +203,7 @@ impl CopyBuffer {
                     feature = "time",
                 ))]
                 coop.made_progress();
-                return Poll::Ready(Ok(self.amt));
+                return Poll::Ready(Ok(self.amt)); //返回总共传递了多少数据
             }
         }
     }

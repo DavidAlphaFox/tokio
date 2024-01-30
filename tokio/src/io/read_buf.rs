@@ -186,7 +186,7 @@ impl<'a> ReadBuf<'a> {
     #[inline]
     pub fn clear(&mut self) {
         self.filled = 0;
-    }
+    } //直接讲filled设置为0
 
     /// Advances the size of the filled region of the buffer.
     ///
