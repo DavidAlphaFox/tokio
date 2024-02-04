@@ -25,7 +25,7 @@ use std::fmt;
 #[cfg_attr(not(tokio_unstable), allow(unreachable_pub))]
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub struct Id(pub(crate) u64);
-
+//任务ID默认是64位
 /// Returns the [`Id`] of the currently running task.
 ///
 /// # Panics

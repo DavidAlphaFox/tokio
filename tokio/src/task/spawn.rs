@@ -195,9 +195,9 @@ cfg_rt! {
             )
         ))]
         let future = task::trace::Trace::root(future);
-        let id = task::Id::next();
-        let task = crate::util::trace::task(future, "task", name, id.as_u64());
-
+        let id = task::Id::next(); //得到一个任务ID，该id为64位无符号的整数
+        let task = crate::util::trace::task(future, "task", name, id.as_u64()); //构建全新的task
+            
         match context::with_current(|handle| handle.spawn(task, id)) {
             Ok(join_handle) => join_handle,
             Err(e) => panic!("{}", e),
