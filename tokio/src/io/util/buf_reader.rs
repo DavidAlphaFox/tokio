@@ -46,7 +46,7 @@ impl<R: AsyncRead> BufReader<R> {
         let buffer = vec![0; capacity];
         Self {
             inner,
-            buf: buffer.into_boxed_slice(),
+            buf: buffer.into_boxed_slice(), //默认8k的Vec
             pos: 0,
             cap: 0,
             seek_state: SeekState::Init,

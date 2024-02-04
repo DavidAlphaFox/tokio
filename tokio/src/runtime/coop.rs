@@ -71,7 +71,7 @@ impl Budget {
 #[inline(always)]
 pub(crate) fn budget<R>(f: impl FnOnce() -> R) -> R {
     with_budget(Budget::initial(), f)
-}
+} //使用budget来执行任务
 
 /// Runs the given closure with an unconstrained task budget. When the function returns, the budget
 /// is reset to the value prior to calling the function.
@@ -222,14 +222,14 @@ cfg_coop! {
         /// when there is not enough remaining budget.
         fn decrement(&mut self) -> BudgetDecrement {
             if let Some(num) = &mut self.0 {
-                if *num > 0 {
+                if *num > 0 { //大与0时候才能继续往下减少
                     *num -= 1;
 
                     let hit_zero = *num == 0;
 
                     BudgetDecrement { success: true, hit_zero }
                 } else {
-                    BudgetDecrement { success: false, hit_zero: false }
+                    BudgetDecrement { success: false, hit_zero: false } //已经没有办法减少了，所以不成功
                 }
             } else {
                 BudgetDecrement { success: true, hit_zero: false }
