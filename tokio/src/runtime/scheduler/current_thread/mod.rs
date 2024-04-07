@@ -17,7 +17,7 @@ use std::sync::atomic::Ordering::{AcqRel, Release};
 use std::task::Poll::{Pending, Ready};
 use std::task::Waker;
 use std::time::Duration;
-
+//在当前线程上进行任务调度，并非只有一个线程，而是让block_on在当前线程进行执行，让其它线程使用io handler进行轮询
 /// Executes tasks on the current thread
 pub(crate) struct CurrentThread {
     /// Core scheduler data is acquired by a thread entering `block_on`.
@@ -165,7 +165,7 @@ impl CurrentThread {
         pin!(future);
 
         crate::runtime::context::enter_runtime(handle, false, |blocking| {
-            let handle = handle.as_current_thread();
+            let handle = handle.as_current_thread(); //当前线程的handler
 
             // Attempt to steal the scheduler core and block_on the future if we can
             // there, otherwise, lets select on a notification that the core is

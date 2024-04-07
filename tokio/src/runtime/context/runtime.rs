@@ -35,7 +35,7 @@ pub(crate) struct EnterRuntimeGuard {
 pub(crate) fn enter_runtime<F, R>(handle: &scheduler::Handle, allow_block_in_place: bool, f: F) -> R
 where
     F: FnOnce(&mut BlockingRegionGuard) -> R,
-{
+{//更新线程的上下文信息
     let maybe_guard = CONTEXT.with(|c| {
         if c.runtime.get().is_entered() {
             None
@@ -52,7 +52,7 @@ where
             let mut rng = c.rng.get().unwrap_or_else(FastRand::new);
             let old_seed = rng.replace_seed(rng_seed);
             c.rng.set(Some(rng));
-
+            //创建上下文的场景信息
             Some(EnterRuntimeGuard {
                 blocking: BlockingRegionGuard::new(),
                 handle: c.set_current(handle),
