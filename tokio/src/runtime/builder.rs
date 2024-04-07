@@ -78,7 +78,7 @@ pub struct Builder {
     /// To run after each thread is unparked.
     pub(super) after_unpark: Option<Callback>,
 
-    /// Customizable keep alive timeout for BlockingPool
+    /// Customizable keep alive timeout for `BlockingPool`
     pub(super) keep_alive: Option<Duration>,
 
     /// How many ticks before pulling a task from the global/remote queue?
@@ -723,7 +723,7 @@ impl Builder {
     /// Sets a custom timeout for a thread in the blocking pool.
     ///
     /// By default, the timeout for a thread is set to 10 seconds. This can
-    /// be overridden using .thread_keep_alive().
+    /// be overridden using `.thread_keep_alive()`.
     ///
     /// # Example
     ///
@@ -758,6 +758,10 @@ impl Builder {
     ///
     /// [the module documentation]: crate::runtime#multi-threaded-runtime-behavior-at-the-time-of-writing
     ///
+    /// # Panics
+    ///
+    /// This function will panic if 0 is passed as an argument.
+    ///
     /// # Examples
     ///
     /// ```
@@ -768,7 +772,9 @@ impl Builder {
     ///     .build();
     /// # }
     /// ```
+    #[track_caller]
     pub fn global_queue_interval(&mut self, val: u32) -> &mut Self {
+        assert!(val > 0, "global_queue_interval must be greater than 0");
         self.global_queue_interval = Some(val);
         self
     }
@@ -824,6 +830,10 @@ impl Builder {
         ///   will immediately terminate and further calls to
         ///   [`Runtime::block_on`] will panic.
         ///
+        /// # Panics
+        /// This method panics if called with [`UnhandledPanic::ShutdownRuntime`]
+        /// on a runtime other than the current thread runtime.
+        ///
         /// # Unstable
         ///
         /// This option is currently unstable and its implementation is
@@ -861,6 +871,10 @@ impl Builder {
         ///
         /// [`JoinHandle`]: struct@crate::task::JoinHandle
         pub fn unhandled_panic(&mut self, behavior: UnhandledPanic) -> &mut Self {
+            if !matches!(self.kind, Kind::CurrentThread) && matches!(behavior, UnhandledPanic::ShutdownRuntime) {
+                panic!("UnhandledPanic::ShutdownRuntime is only supported in current thread runtime");
+            }
+
             self.unhandled_panic = behavior;
             self
         }
