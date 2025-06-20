@@ -453,7 +453,7 @@ impl Handle {
     where
         F: crate::future::Future + Send + 'static,
         F::Output: Send + 'static,
-    {
+    {   
         let (handle, notified) = me.shared.owned.bind(future, me.clone(), id);
 
         me.task_hooks.spawn(&TaskMeta {
@@ -466,7 +466,7 @@ impl Handle {
         }
 
         handle
-    }
+    } //CurrentThread调度器真正的任务创建器
 
     /// Spawn a task which isn't safe to send across thread boundaries onto the runtime.
     ///

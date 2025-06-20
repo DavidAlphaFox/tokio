@@ -37,18 +37,18 @@ struct Context {
     /// Uniquely identifies the current thread
     #[cfg(feature = "rt")]
     thread_id: Cell<Option<ThreadId>>,
-
+    //线程的ID
     /// Handle to the runtime scheduler running on the current thread.
     #[cfg(feature = "rt")]
     current: current::HandleCell,
-
+    //当前Runtime的Scheduler的Handle
     /// Handle to the scheduler's internal "context"
     #[cfg(feature = "rt")]
     scheduler: Scoped<scheduler::Context>,
 
     #[cfg(feature = "rt")]
     current_task_id: Cell<Option<Id>>,
-
+    //当前正在执行的任务ID
     /// Tracks if the current thread is currently driving a runtime.
     /// Note, that if this is set to "entered", the current scheduler
     /// handle may not reference the runtime currently executing. This

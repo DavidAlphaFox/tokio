@@ -198,7 +198,7 @@ cfg_rt! {
         let future = task::trace::Trace::root(future);
         let id = task::Id::next();
         let task = crate::util::trace::task(future, "task", meta, id.as_u64());
-
+        //此处使用线程local中的Scheduler::Handler进行任务的创建
         match context::with_current(|handle| handle.spawn(task, id)) {
             Ok(join_handle) => join_handle,
             Err(e) => panic!("{}", e),
