@@ -57,7 +57,7 @@ pub(crate) struct Handle {
 /// a function that will perform the scheduling work and acts as a capability token.
 struct Core {
     /// Scheduler run queue
-    tasks: VecDeque<Notified>,
+    tasks: VecDeque<Notified>, //运行队列
 
     /// Current tick
     tick: u32,
@@ -328,7 +328,7 @@ impl Core {
     }
 
     fn next_local_task(&mut self, handle: &Handle) -> Option<Notified> {
-        let ret = self.tasks.pop_front();
+        let ret = self.tasks.pop_front(); //得到一个任务
         handle
             .shared
             .worker_metrics

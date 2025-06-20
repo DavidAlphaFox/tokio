@@ -47,14 +47,14 @@ use std::time::Duration;
 /// ```
 pub struct Builder {
     /// Runtime type
-    kind: Kind,
+    kind: Kind, //运行时类型
 
     /// Whether or not to enable the I/O driver
-    enable_io: bool,
+    enable_io: bool, //是否开启IO特性
     nevents: usize,
 
     /// Whether or not to enable the time driver
-    enable_time: bool,
+    enable_time: bool, //是否开启timer特性
 
     /// Whether or not the clock should start paused.
     start_paused: bool,
@@ -237,7 +237,7 @@ impl Builder {
         // The number `61` is fairly arbitrary. I believe this value was copied from golang.
         #[cfg(not(loom))]
         const EVENT_INTERVAL: u32 = 61;
-
+        //构建单线程运行时
         Builder::new(Kind::CurrentThread, EVENT_INTERVAL)
     }
 
@@ -1423,7 +1423,7 @@ impl Builder {
 
     fn build_current_thread_runtime(&mut self) -> io::Result<Runtime> {
         use crate::runtime::runtime::Scheduler;
-
+        //使用Rutime的Scheduler
         let (scheduler, handle, blocking_pool) =
             self.build_current_thread_runtime_components(None)?;
 
@@ -1456,9 +1456,9 @@ impl Builder {
     ) -> io::Result<(CurrentThread, Handle, BlockingPool)> {
         use crate::runtime::scheduler;
         use crate::runtime::Config;
-
+        //得到driver和Driver的handler
         let (driver, driver_handle) = driver::Driver::new(self.get_cfg())?;
-
+        //阻塞任务池
         // Blocking pool
         let blocking_pool = blocking::create_blocking_pool(self, self.max_blocking_threads);
         let blocking_spawner = blocking_pool.spawner().clone();

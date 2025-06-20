@@ -210,7 +210,7 @@ impl BlockingPool {
     pub(crate) fn new(builder: &Builder, thread_cap: usize) -> BlockingPool {
         let (shutdown_tx, shutdown_rx) = shutdown::channel();
         let keep_alive = builder.keep_alive.unwrap_or(KEEP_ALIVE);
-
+        //创建一个通信信道用于监听shutdown
         BlockingPool {
             spawner: Spawner {
                 inner: Arc::new(Inner {
