@@ -187,7 +187,7 @@ impl CurrentThread {
 
         crate::runtime::context::enter_runtime(handle, false, |blocking| {
             let handle = handle.as_current_thread();
-
+            // 得到CurrentThread::Handle
             // Attempt to steal the scheduler core and block_on the future if we can
             // there, otherwise, lets select on a notification that the core is
             // available or the future is complete.
@@ -238,7 +238,7 @@ impl CurrentThread {
 
     pub(crate) fn shutdown(&mut self, handle: &scheduler::Handle) {
         let handle = handle.as_current_thread();
-
+        //得到CurrenThread::Handle
         // Avoid a double panic if we are currently panicking and
         // the lock may be poisoned.
 
@@ -720,7 +720,7 @@ impl CoreGuard<'_> {
         let ret = self.enter(|mut core, context| {
             let waker = Handle::waker_ref(&context.handle);
             let mut cx = std::task::Context::from_waker(&waker);
-
+            // 创建一个waker
             pin!(future);
 
             core.metrics.start_processing_scheduled_tasks();

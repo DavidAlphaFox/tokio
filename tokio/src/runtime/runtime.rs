@@ -324,6 +324,7 @@ impl Runtime {
     #[track_caller]
     pub fn block_on<F: Future>(&self, future: F) -> F::Output {
         let fut_size = mem::size_of::<F>();
+        //得到future对象的大小
         if fut_size > BOX_FUTURE_THRESHOLD {
             self.block_on_inner(Box::pin(future), SpawnMeta::new_unnamed(fut_size))
         } else {
