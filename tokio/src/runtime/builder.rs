@@ -1423,7 +1423,7 @@ impl Builder {
 
     fn build_current_thread_runtime(&mut self) -> io::Result<Runtime> {
         use crate::runtime::runtime::Scheduler;
-        //使用Rutime的Scheduler
+        //使用Rutime的Scheduler和handler
         let (scheduler, handle, blocking_pool) =
             self.build_current_thread_runtime_components(None)?;
 
@@ -1609,11 +1609,11 @@ cfg_rt_multi_thread! {
             use crate::loom::sys::num_cpus;
             use crate::runtime::{Config, runtime::Scheduler};
             use crate::runtime::scheduler::{self, MultiThread};
-
+            //获取工作线程的数量
             let worker_threads = self.worker_threads.unwrap_or_else(num_cpus);
-
+            //得到驱动和驱动句柄
             let (driver, driver_handle) = driver::Driver::new(self.get_cfg())?;
-
+            //构建阻塞任务线程池
             // Create the blocking pool
             let blocking_pool =
                 blocking::create_blocking_pool(self, self.max_blocking_threads + worker_threads);

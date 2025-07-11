@@ -177,14 +177,14 @@ impl CurrentThread {
             core,
             notify: Notify::new(),
         };
-
+        //返回调度器和handle
         (scheduler, handle)
     }
 
     #[track_caller]
     pub(crate) fn block_on<F: Future>(&self, handle: &scheduler::Handle, future: F) -> F::Output {
         pin!(future);
-
+        //进入运行时
         crate::runtime::context::enter_runtime(handle, false, |blocking| {
             let handle = handle.as_current_thread();
             // 得到CurrentThread::Handle

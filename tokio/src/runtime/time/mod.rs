@@ -132,7 +132,7 @@ impl Driver {
                 state: Mutex::new(InnerState {
                     next_wake: None,
                     wheel: wheel::Wheel::new(),
-                }),
+                }), //时间轮
                 is_shutdown: AtomicBool::new(false),
 
                 #[cfg(feature = "test-util")]

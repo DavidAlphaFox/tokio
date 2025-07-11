@@ -77,7 +77,7 @@ impl ParkThread {
 // ==== impl Inner ====
 
 impl Inner {
-    fn park(&self) {
+    fn park(&self) { //线程停靠
         // If we were previously notified then we consume this notification and
         // return quickly.
         if self
@@ -85,14 +85,14 @@ impl Inner {
             .compare_exchange(NOTIFIED, EMPTY, SeqCst, SeqCst)
             .is_ok()
         {
-            return;
+            return; //先检查自己是否被notified，如果被notified，那立刻返回
         }
 
         // Otherwise we need to coordinate going to sleep
         let mut m = self.mutex.lock();
-
+        //上锁，尝试更新状态为停靠
         match self.state.compare_exchange(EMPTY, PARKED, SeqCst, SeqCst) {
-            Ok(_) => {}
+            Ok(_) => {} //停靠成功
             Err(NOTIFIED) => {
                 // We must read here, even though we know it will be `NOTIFIED`.
                 // This is because `unpark` may have been called again since we read
@@ -100,7 +100,7 @@ impl Inner {
                 // acquire operation that synchronizes with that `unpark` to observe
                 // any writes it made before the call to unpark. To do that we must
                 // read from the write it made to `state`.
-                let old = self.state.swap(EMPTY, SeqCst);
+                let old = self.state.swap(EMPTY, SeqCst); //被唤醒了
                 debug_assert_eq!(old, NOTIFIED, "park state changed unexpectedly");
 
                 return;
@@ -109,7 +109,7 @@ impl Inner {
         }
 
         loop {
-            m = self.condvar.wait(m).unwrap();
+            m = self.condvar.wait(m).unwrap(); //等待被信号量唤醒
 
             if self
                 .state
@@ -174,7 +174,7 @@ impl Inner {
             n => panic!("inconsistent park_timeout state: {n}"),
         }
     }
-
+    //线程唤醒
     fn unpark(&self) {
         // To ensure the unparked thread will observe any writes we made before
         // this call, we must perform a release operation that `park` can
@@ -199,9 +199,9 @@ impl Inner {
         // Releasing `lock` before the call to `notify_one` means that when the
         // parked thread wakes it doesn't get woken only to have to wait for us
         // to release `lock`.
-        drop(self.mutex.lock());
+        drop(self.mutex.lock());//加上锁后，立刻释放掉
 
-        self.condvar.notify_one();
+        self.condvar.notify_one();//立刻唤醒
     }
 
     fn shutdown(&self) {

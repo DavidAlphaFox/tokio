@@ -162,14 +162,18 @@ cfg_rt! {
     /// ```text
     /// error[E0391]: cycle detected when processing `main`
     /// ```
+    /// Future 的 Send 性取决于其内部数据
+    /// 如果 Future 内部的所有数据都是 Send 的，则它自动满足 Send。
+    ///
+    /// 如果它包含了非 Send 类型（如 Rc、裸指针 *const T、MutexGuard 等），则它不会是 Send
     #[track_caller]
     pub fn spawn<F>(future: F) -> JoinHandle<F::Output>
     where
         F: Future + Send + 'static,
         F::Output: Send + 'static,
     {
-        let fut_size = std::mem::size_of::<F>();
-        if fut_size > BOX_FUTURE_THRESHOLD {
+        let fut_size = std::mem::size_of::<F>(); //获取Future的大小
+        if fut_size > BOX_FUTURE_THRESHOLD { //如果Future的大小超过了内存限制，则使用Box的pin
             spawn_inner(Box::pin(future), SpawnMeta::new_unnamed(fut_size))
         } else {
             spawn_inner(future, SpawnMeta::new_unnamed(fut_size))
@@ -195,8 +199,8 @@ cfg_rt! {
                 target_arch = "x86_64"
             )
         ))]
-        let future = task::trace::Trace::root(future);
-        let id = task::Id::next();
+        let future = task::trace::Trace::root(future); //任务追踪？
+        let id = task::Id::next(); //生成任务ID
         let task = crate::util::trace::task(future, "task", meta, id.as_u64());
         //此处使用线程local中的Scheduler::Handler进行任务的创建
         match context::with_current(|handle| handle.spawn(task, id)) {

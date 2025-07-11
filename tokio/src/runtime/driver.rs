@@ -44,14 +44,15 @@ pub(crate) struct Cfg {
 
 impl Driver {
     pub(crate) fn new(cfg: Cfg) -> io::Result<(Self, Handle)> {
+        //创建IO处理的堆栈，handler
         let (io_stack, io_handle, signal_handle) = create_io_stack(cfg.enable_io, cfg.nevents)?;
-
+        //创建时钟
         let clock = create_clock(cfg.enable_pause_time, cfg.start_paused);
-
+        //创建timer驱动
         let (time_driver, time_handle) = create_time_driver(cfg.enable_time, io_stack, &clock);
 
         Ok((
-            Self { inner: time_driver },
+            Self { inner: time_driver }, //返回结果是时间driver和所有的Handler集合
             Handle {
                 io: io_handle,
                 signal: signal_handle,
@@ -195,7 +196,7 @@ cfg_io_driver! {
         }
     }
 }
-
+//无IO驱动
 cfg_not_io_driver! {
     pub(crate) type IoHandle = UnparkThread;
 
@@ -203,8 +204,8 @@ cfg_not_io_driver! {
     pub(crate) struct IoStack(ParkThread);
 
     fn create_io_stack(_enabled: bool, _nevents: usize) -> io::Result<(IoStack, IoHandle, SignalHandle)> {
-        let park_thread = ParkThread::new();
-        let unpark_thread = park_thread.unpark();
+        let park_thread = ParkThread::new(); //停靠线程得机制
+        let unpark_thread = park_thread.unpark(); //构建一个Unpark得封装，后面便于唤醒
         Ok((IoStack(park_thread), unpark_thread, Default::default()))
     }
 
